@@ -1,0 +1,28 @@
+# Core dependencies for Alarm News System
+# Python 3.9+ required
+
+# Database
+pymongo>=4.6.0
+
+# Message Queue
+kafka-python>=2.0.2
+
+# Caching and Distributed Locking
+redis>=5.0.0
+
+# Authentication and Security
+bcrypt>=4.1.0
+pyjwt>=2.8.0
+
+# Web Crawling
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Configuration Management
+python-dotenv>=1.0.0
+
+# Email (smtplib is part of Python standard library, no separate install needed)
