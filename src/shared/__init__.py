@@ -33,6 +33,24 @@ from src.shared.kafka_producer import (
     InMemoryProducer,
     create_kafka_producer,
 )
+from src.shared.health import (
+    HealthChecker,
+    HealthStatus,
+    DependencyStatus,
+)
+from src.shared.metrics import (
+    MetricsCollector,
+    MetricsSnapshot,
+    get_metrics_collector,
+    reset_metrics_collector,
+)
+from src.shared.logging_config import (
+    setup_logging,
+    get_correlation_id,
+    set_correlation_id,
+    clear_correlation_id,
+    log_notification_event,
+)
 
 __all__ = [
     # Cache
@@ -72,4 +90,19 @@ __all__ = [
     "AlarmNewsKafkaProducer",
     "InMemoryProducer",
     "create_kafka_producer",
+    # Health Check
+    "HealthChecker",
+    "HealthStatus",
+    "DependencyStatus",
+    # Metrics
+    "MetricsCollector",
+    "MetricsSnapshot",
+    "get_metrics_collector",
+    "reset_metrics_collector",
+    # Logging
+    "setup_logging",
+    "get_correlation_id",
+    "set_correlation_id",
+    "clear_correlation_id",
+    "log_notification_event",
 ]

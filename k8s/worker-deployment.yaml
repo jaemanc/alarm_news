@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alarm-news-worker
+  namespace: alarm-news
+  labels:
+    app: alarm-news
+    component: worker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: alarm-news
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: alarm-news
+        component: worker
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: worker
+          image: alarm-news/worker:latest
+          ports:
+            - containerPort: 8080
+              name: health
+          envFrom:
+            - configMapRef:
+                name: alarm-news-config
+            - secretRef:
+                name: alarm-news-secrets
+          env:
+            - name: WORKER_SHUTDOWN_GRACE_PERIOD_SECONDS
+              value: "60"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+            periodSeconds: 30
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "kill -SIGTERM 1 && sleep 60"]

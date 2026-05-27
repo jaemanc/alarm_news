@@ -1,0 +1,48 @@
+# Dockerfile for Alarm News Email Delivery Worker
+# Required environment variables:
+#   KAFKA_BOOTSTRAP_SERVERS - Kafka broker addresses
+#   SMTP_HOST - SMTP server hostname
+#   SMTP_PORT - SMTP server port
+#   SMTP_USERNAME - SMTP authentication username
+#   SMTP_PASSWORD - SMTP authentication password
+#   SMTP_FROM_EMAIL - Sender email address
+
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc libffi-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY setup.py .
+
+# Create non-root user
+RUN useradd --create-home --uid 1000 appuser
+USER appuser
+
+# Set environment variables with defaults
+ENV KAFKA_BOOTSTRAP_SERVERS=kafka:9092 \
+    KAFKA_EMAIL_TOPIC=email-delivery \
+    KAFKA_DLQ_TOPIC=notification-dlq \
+    KAFKA_CONSUMER_GROUP_EMAIL=alarm-news-email-workers \
+    SMTP_HOST=smtp.gmail.com \
+    SMTP_PORT=587 \
+    SMTP_USERNAME="" \
+    SMTP_PASSWORD="" \
+    SMTP_FROM_EMAIL=noreply@alarmnews.com \
+    SMTP_FROM_NAME="Alarm News" \
+    LOG_LEVEL=INFO \
+    LOG_FORMAT=json \
+    HEALTH_CHECK_TIMEOUT_SECONDS=5
+
+EXPOSE 8080
+
+CMD ["python", "-m", "src.email_worker.main"]

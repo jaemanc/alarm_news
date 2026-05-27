@@ -1,0 +1,45 @@
+# Dockerfile for Alarm News Authentication Service
+# Required environment variables:
+#   MONGODB_URI - MongoDB connection string
+#   REDIS_HOST - Redis server host
+#   REDIS_PORT - Redis server port
+#   JWT_SECRET - Secret key for JWT token signing
+#   BCRYPT_COST_FACTOR - bcrypt hashing cost factor
+
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc libffi-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY setup.py .
+
+# Create non-root user
+RUN useradd --create-home --uid 1000 appuser
+USER appuser
+
+# Set environment variables with defaults
+ENV MONGODB_URI=mongodb://mongodb:27017 \
+    MONGODB_DATABASE=alarm_news \
+    REDIS_HOST=redis \
+    REDIS_PORT=6379 \
+    JWT_SECRET=changeme \
+    JWT_EXPIRY_HOURS=24 \
+    BCRYPT_COST_FACTOR=12 \
+    RATE_LIMIT_MAX_ATTEMPTS=5 \
+    RATE_LIMIT_WINDOW_MINUTES=15 \
+    LOG_LEVEL=INFO \
+    LOG_FORMAT=json
+
+EXPOSE 8000
+
+CMD ["python", "-m", "src.auth.api"]

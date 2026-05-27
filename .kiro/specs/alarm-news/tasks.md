@@ -45,7 +45,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Return user_id, password, subscription_expiry on success
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.11_
   
-  - [ ]* 3.2 Write unit tests for user registration
+  - [x]* 3.2 Write unit tests for user registration
     - Test email validation with valid and invalid formats
     - Test keyword validation with edge cases
     - Test password generation meets requirements
@@ -62,7 +62,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Return generic "invalid credentials" error for security
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10_
   
-  - [ ]* 3.4 Write unit tests for authentication
+  - [x]* 3.4 Write unit tests for authentication
     - Test password verification with correct and incorrect passwords
     - Test subscription expiry checking
     - Test JWT token generation and expiry
@@ -77,7 +77,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Invalidate tokens by storing in Redis with TTL
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
   
-  - [ ]* 3.6 Write unit tests for subscription management
+  - [x]* 3.6 Write unit tests for subscription management
     - Test renewal calculation with expired and active subscriptions
     - Test early renewal (7 days before expiry)
     - Test cancellation deletes user data
@@ -99,7 +99,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Return False if lock already held
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.9_
   
-  - [ ]* 4.3 Write unit tests for distributed lock
+  - [x]* 4.3 Write unit tests for distributed lock
     - Test lock acquisition with SET NX EX
     - Test lock release with Lua script
     - Test lock timeout behavior
@@ -134,8 +134,8 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Create notification-dlq topic: 3 partitions, replication factor 3, retention 7 days
     - _Requirements: 12.1, 12.2_
 
-- [ ] 6. Implement web crawler component
-  - [~] 6.1 Create keyword retriever
+- [x] 6. Implement web crawler component
+  - [x] 6.1 Create keyword retriever
     - Query MongoDB for all users where subscription_expiry > current_timestamp
     - Extract and deduplicate keywords using aggregation
     - Create crawler jobs for each unique keyword
@@ -143,7 +143,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Generate job_id using UUID4
     - _Requirements: 6.2, 6.3, 17.1_
   
-  - [~] 6.2 Implement news crawler
+  - [x] 6.2 Implement news crawler
     - Crawl configured news websites using BeautifulSoup or Scrapy
     - Match articles using case-insensitive substring in title/content
     - Extract title, summary (500 chars), URL, publication date, source
@@ -156,14 +156,14 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Log errors for 4xx/5xx responses
     - _Requirements: 6.1, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10, 6.11, 6.12_
   
-  - [ ]* 6.3 Write unit tests for news crawler
+  - [x]* 6.3 Write unit tests for news crawler
     - Test article extraction from HTML
     - Test keyword matching (case-insensitive)
     - Test duplicate URL detection
     - Test robots.txt compliance
     - _Requirements: 6.4, 6.5, 6.7, 6.10_
   
-  - [~] 6.4 Implement stock crawler
+  - [x] 6.4 Implement stock crawler
     - Crawl stock websites using BeautifulSoup
     - Match stocks using case-insensitive substring in symbol/company name
     - Extract symbol, company name, current price, price change, percentage change
@@ -176,22 +176,22 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Log errors for invalid price data
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8_
   
-  - [ ]* 6.5 Write unit tests for stock crawler
+  - [x]* 6.5 Write unit tests for stock crawler
     - Test stock data extraction from HTML
     - Test price validation (positive numbers)
     - Test percentage change calculation
     - Test rounding to 2 decimals
     - _Requirements: 7.2, 7.5, 7.7, 7.8_
   
-  - [~] 6.6 Create data store interface
+  - [x] 6.6 Create data store interface
     - Implement store_news_article method
     - Implement store_stock_data method
     - Implement query_by_keywords method with time range filter
     - Implement is_url_crawled method for duplicate checking
     - _Requirements: 6.6, 7.3, 9.3_
 
-- [ ] 7. Implement scheduler component
-  - [~] 7.1 Create user loader
+- [x] 7. Implement scheduler component
+  - [x] 7.1 Create user loader
     - Load all users from MongoDB where subscription_expiry > current_timestamp on startup
     - Retry MongoDB connection every 10 seconds (max 10 attempts) on startup failure
     - Reload user data every 5 minutes
@@ -200,7 +200,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Log warnings on MongoDB reload failures
     - _Requirements: 8.1, 8.2, 8.6, 8.7, 8.8, 17.1, 17.2_
   
-  - [~] 7.2 Implement notification time evaluator
+  - [x] 7.2 Implement notification time evaluator
     - Evaluate notification times with 1-minute precision
     - Match current time (hour, minute) against user notification times
     - Distribute users across scheduler instances using consistent hashing based on user_id
@@ -208,7 +208,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Generate event_id using UUID4 for idempotency
     - _Requirements: 8.3, 8.4, 8.8, 8.9_
   
-  - [~] 7.3 Create event publisher
+  - [x] 7.3 Create event publisher
     - Publish notification events to Kafka with acks='all'
     - Partition by user_id for ordered processing
     - Retry failed publishes up to 3 times with 5-second intervals
@@ -216,13 +216,13 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Publish within 10 seconds of time match
     - _Requirements: 8.4, 8.5, 8.6_
   
-  - [ ]* 7.4 Write unit tests for scheduler
+  - [x]* 7.4 Write unit tests for scheduler
     - Test notification time matching (1-minute precision)
     - Test consistent hashing distribution
     - Test subscription expiry filtering
     - _Requirements: 8.3, 8.8, 8.9_
   
-  - [~] 7.5 Create scheduler main loop
+  - [x] 7.5 Create scheduler main loop
     - Initialize MongoDB connection and Kafka producer
     - Load user data on startup
     - Evaluate notification times every minute
@@ -231,7 +231,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - _Requirements: 8.1, 8.3, 8.4, 8.6_
 
 - [ ] 8. Implement worker component
-  - [~] 8.1 Create event consumer
+  - [x] 8.1 Create event consumer
     - Consume events from Kafka consumer group
     - Use manual offset commit mode
     - Handle graceful shutdown on SIGTERM
@@ -239,7 +239,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Complete in-flight notifications within 60 seconds
     - _Requirements: 9.3, 9.4, 12.9, 12.10_
   
-  - [~] 8.2 Implement data retriever
+  - [x] 8.2 Implement data retriever
     - Retrieve user email and keywords from MongoDB by user_id
     - Skip processing if user not found or subscription expired
     - Query Data Store for crawled data matching user keywords (past 24 hours)
@@ -248,7 +248,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Sort by crawl_timestamp descending
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
   
-  - [~] 8.3 Create email formatter
+  - [x] 8.3 Create email formatter
     - Format subject line: "Alarm News - {date} - {keywords}"
     - Create HTML body with greeting, news section, stock section, footer
     - Include article title, summary, URL for each news item
@@ -266,7 +266,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Test percentage change formatting (+/- sign)
     - _Requirements: 9.5, 9.6, 9.7, 9.8_
   
-  - [~] 8.5 Implement email publisher
+  - [x] 8.5 Implement email publisher
     - Publish formatted email to Kafka email delivery topic
     - Retry failed publishes up to 3 times with 5-second intervals
     - Store failed emails in dead letter queue after retry exhaustion
@@ -275,7 +275,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Log failures with correlation IDs
     - _Requirements: 9.9, 9.10, 9.11_
   
-  - [~] 8.6 Create worker event processor
+  - [x] 8.6 Create worker event processor
     - Consume events from Kafka consumer group
     - Acquire distributed lock using event_id
     - Skip processing if lock already held (acknowledge message)
@@ -287,20 +287,20 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Release lock without commit on failure (allow redelivery)
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 9.1, 9.2, 9.9, 12.3_
   
-  - [~] 8.7 Create worker main loop
+  - [x] 8.7 Create worker main loop
     - Initialize MongoDB, Redis, and Kafka connections
     - Start consuming events with event processor handler
     - Handle SIGTERM for graceful shutdown
     - _Requirements: 9.4, 12.9, 12.10_
 
 - [ ] 9. Implement email delivery worker component
-  - [~] 9.1 Create email consumer
+  - [x] 9.1 Create email consumer
     - Consume email notifications from Kafka email delivery topic
     - Use manual offset commit mode
     - Commit offsets only after successful delivery or DLQ storage
     - _Requirements: 10.1, 10.9_
   
-  - [~] 9.2 Implement SMTP client
+  - [x] 9.2 Implement SMTP client
     - Connect to SMTP server with TLS encryption using smtplib.SMTP_SSL or SMTP with starttls()
     - Set connection timeout to 10 seconds
     - Authenticate with configured SMTP credentials
@@ -319,7 +319,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Test retry logic for network errors
     - _Requirements: 10.2, 10.3, 10.6, 10.7_
   
-  - [~] 9.4 Implement email delivery handler
+  - [x] 9.4 Implement email delivery handler
     - Consume email from Kafka
     - Connect to SMTP server
     - Send email to user address
@@ -327,21 +327,21 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Acknowledge Kafka message on success
     - _Requirements: 10.1, 10.2, 10.6, 10.8, 10.9_
   
-  - [~] 9.5 Create email delivery worker main loop
+  - [x] 9.5 Create email delivery worker main loop
     - Initialize Kafka consumer and SMTP connection
     - Start consuming emails with delivery handler
     - Handle graceful shutdown
     - _Requirements: 10.1, 10.9_
 
 - [ ] 10. Implement notification time and keyword management API
-  - [~] 10.1 Create REST API endpoint for configuring notification times
+  - [x] 10.1 Create REST API endpoint for configuring notification times
     - Validate hour (0-23) and minute (0-59)
     - Update notification_times in MongoDB user record
     - Allow up to 5 notification times per user
     - Return error for invalid time format or MongoDB failure
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
   
-  - [~] 10.2 Create REST API endpoint for updating keywords
+  - [x] 10.2 Create REST API endpoint for updating keywords
     - Validate at least 1 keyword, each 1-100 chars
     - Allow up to 20 keywords per user
     - Update keywords in MongoDB user record
@@ -355,7 +355,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - _Requirements: 5.1, 5.2, 5.7, 5.8_
 
 - [ ] 11. Implement subscription expiry cleanup job
-  - [~] 11.1 Create cleanup job
+  - [x] 11.1 Create cleanup job
     - Run daily at midnight UTC
     - Query MongoDB for users where subscription_expiry is more than 90 days in the past
     - Delete user records that have been expired for more than 90 days
@@ -369,7 +369,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - _Requirements: 17.4, 17.5, 17.6_
 
 - [ ] 12. Implement health checks and monitoring
-  - [~] 12.1 Create health check endpoint
+  - [x] 12.1 Create health check endpoint
     - Check Kafka connectivity within 5 seconds
     - Check MongoDB connectivity within 5 seconds
     - Check Redis connectivity within 5 seconds
@@ -378,37 +378,37 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Mark unhealthy if worker has not processed any notification for 5+ minutes
     - _Requirements: 13.1, 13.2, 13.4_
   
-  - [~] 12.2 Implement metrics collection
+  - [x] 12.2 Implement metrics collection
     - Collect notification processing latency in milliseconds
     - Collect crawl success rate as percentage (0-100)
     - Collect email delivery success rate as percentage (0-100)
     - Emit metrics to monitoring system every 1 minute
     - _Requirements: 13.3, 13.6, 13.7_
   
-  - [~] 12.3 Implement structured logging with correlation IDs
+  - [x] 12.3 Implement structured logging with correlation IDs
     - Log notification events: received, processed, delivered, failed
     - Include correlation ID for tracing across scheduler, worker, and email worker
     - _Requirements: 13.5_
 
-- [~] 13. Checkpoint - Ensure all tests pass
+- [x] 13. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 14. Create Kubernetes deployment manifests
-  - [~] 14.1 Create web crawler deployment manifest
+  - [x] 14.1 Create web crawler deployment manifest
     - Define deployment with replicas, resource limits, environment variables
     - Configure readiness probe: initial delay 10s, timeout 5s, failure threshold 3, period 10s, check MongoDB connectivity
     - Configure liveness probe: initial delay 30s, timeout 5s, failure threshold 3, period 30s, check health endpoint
     - Set termination grace period to 60 seconds
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.8_
   
-  - [~] 14.2 Create scheduler deployment manifest
+  - [x] 14.2 Create scheduler deployment manifest
     - Define deployment with replicas, resource limits, environment variables
     - Configure readiness probe: initial delay 10s, timeout 5s, failure threshold 3, period 10s, check Kafka, MongoDB, Redis connectivity
     - Configure liveness probe: initial delay 30s, timeout 5s, failure threshold 3, period 30s, check health endpoint
     - Set termination grace period to 60 seconds
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.8_
   
-  - [~] 14.3 Create worker deployment manifest
+  - [x] 14.3 Create worker deployment manifest
     - Define deployment with replicas, resource limits, environment variables
     - Configure readiness probe: initial delay 10s, timeout 5s, failure threshold 3, period 10s, check Kafka, MongoDB, Redis connectivity
     - Configure liveness probe: initial delay 30s, timeout 5s, failure threshold 3, period 30s, check health endpoint
@@ -416,28 +416,28 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Handle SIGTERM: stop consuming, complete in-flight notifications within 60 seconds
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.8, 14.9, 14.10, 14.11_
   
-  - [~] 14.4 Create email delivery worker deployment manifest
+  - [x] 14.4 Create email delivery worker deployment manifest
     - Define deployment with replicas, resource limits, environment variables
     - Configure readiness probe: initial delay 10s, timeout 5s, failure threshold 3, period 10s, check Kafka connectivity
     - Configure liveness probe: initial delay 30s, timeout 5s, failure threshold 3, period 30s, check health endpoint
     - Set termination grace period to 60 seconds
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.8_
   
-  - [~] 14.5 Create service manifests for all components
+  - [x] 14.5 Create service manifests for all components
     - Define ClusterIP services for internal communication
     - Expose health check endpoints
     - _Requirements: 14.1_
   
-  - [~] 14.6 Create ConfigMap for application configuration
+  - [x] 14.6 Create ConfigMap for application configuration
     - Define Kafka broker addresses, MongoDB connection string, Redis host/port, SMTP server settings, crawl target websites
     - _Requirements: 14.1_
   
-  - [~] 14.7 Create Secret for sensitive credentials
+  - [x] 14.7 Create Secret for sensitive credentials
     - Define MongoDB password, Redis password, SMTP credentials, JWT secret
     - _Requirements: 15.5_
 
 - [ ] 15. Create Docker images
-  - [~] 15.1 Create Dockerfile for authentication service
+  - [x] 15.1 Create Dockerfile for authentication service
     - Use Python 3.9+ base image
     - Copy requirements.txt and install dependencies
     - Copy source code
@@ -447,7 +447,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Ensure image size under 500MB compressed
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8, 15.9_
   
-  - [~] 15.2 Create Dockerfile for web crawler
+  - [x] 15.2 Create Dockerfile for web crawler
     - Use Python 3.9+ base image
     - Copy requirements.txt and install dependencies
     - Copy source code
@@ -457,7 +457,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Ensure image size under 500MB compressed
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8, 15.9_
   
-  - [~] 15.3 Create Dockerfile for scheduler
+  - [x] 15.3 Create Dockerfile for scheduler
     - Use Python 3.9+ base image
     - Copy requirements.txt and install dependencies
     - Copy source code
@@ -467,7 +467,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Ensure image size under 500MB compressed
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8, 15.9_
   
-  - [~] 15.4 Create Dockerfile for worker
+  - [x] 15.4 Create Dockerfile for worker
     - Use Python 3.9+ base image
     - Copy requirements.txt and install dependencies
     - Copy source code
@@ -477,7 +477,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Ensure image size under 500MB compressed
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8, 15.9_
   
-  - [~] 15.5 Create Dockerfile for email delivery worker
+  - [x] 15.5 Create Dockerfile for email delivery worker
     - Use Python 3.9+ base image
     - Copy requirements.txt and install dependencies
     - Copy source code
@@ -487,7 +487,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Ensure image size under 500MB compressed
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8, 15.9_
   
-  - [~] 15.6 Create docker-compose.yml for local development
+  - [x] 15.6 Create docker-compose.yml for local development
     - Define services: auth, crawler, scheduler, worker, email_worker, Kafka, Zookeeper, MongoDB, Redis
     - Configure service dependencies and networking
     - Mount source code for hot reload during development
@@ -524,7 +524,7 @@ This implementation plan breaks down the Alarm News system into discrete coding 
     - Verify duplicate URLs not re-crawled
     - _Requirements: 6.4, 6.5, 6.6, 6.7, 7.2, 7.3_
 
-- [~] 17. Final checkpoint - Ensure all tests pass
+- [x] 17. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
@@ -537,9 +537,28 @@ This implementation plan breaks down the Alarm News system into discrete coding 
 - Email-only notifications (no Slack/Discord/KakaoTalk)
 - Property-based testing is not applicable to this infrastructure orchestration system
 - Integration tests use Testcontainers for Kafka, MongoDB, and Redis
-- Unit tests focus on business logic: validation, formatting, crawling, authentication
 - Checkpoints ensure incremental validation before proceeding to next phase
 - Blue/green deployment testing should be performed in staging environment
+
+## Testing & Development Guidelines
+
+### 테스트 최소화 원칙
+- 각 컴포넌트(모듈) 구현 시 개별 단위 테스트를 작성하지 않는다
+- 테스트는 작업 단위(wave)의 마지막에 한 번만 통합적으로 검증한다
+- 검증 방식: 로직 테스트 대신 **가벼운 스키마/인터페이스 체크**만 수행
+  - 함수가 올바른 타입을 반환하는지
+  - 필수 필드가 존재하는지
+  - 에러 시 올바른 예외 타입이 발생하는지
+
+### API/외부 서비스 테스트 시 더미 데이터 사용
+- 개발/테스트 단계에서 외부 API나 서비스 호출 시 **초미니 더미 데이터**를 사용한다
+- 더미 데이터 예시: 1~2개의 최소 필드만 포함한 fixture
+- 실제 네트워크 호출 없이 mock/stub으로 대체
+- 대량 데이터 fixture 금지 (최대 2~3개 항목)
+
+### 적용 범위
+- 이 지침은 앞으로 남은 모든 태스크(9.4 이후)에 적용
+- 기존에 작성된 테스트는 그대로 유지하되, 새로 작성하는 테스트는 이 원칙을 따른다
 
 
 ## Task Dependency Graph

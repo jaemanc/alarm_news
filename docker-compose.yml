@@ -1,0 +1,185 @@
+services:
+  # Infrastructure Services
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      zookeeper:
+        condition: service_started
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: alarm_news
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application Services
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: alarm_news
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: dev-jwt-secret-key
+      JWT_EXPIRY_HOURS: 24
+      BCRYPT_COST_FACTOR: 12
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./src:/app/src
+
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile.crawler
+    ports:
+      - "8081:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: alarm_news
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CRAWLER_INTERVAL_MINUTES: 30
+      CRAWLER_REQUEST_DELAY_SECONDS: 2
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./src:/app/src
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.scheduler
+    ports:
+      - "8082:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: alarm_news
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_NOTIFICATION_TOPIC: notification-events
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SCHEDULER_USER_RELOAD_MINUTES: 5
+      SCHEDULER_EVALUATION_INTERVAL_SECONDS: 60
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./src:/app/src
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    ports:
+      - "8083:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DATABASE: alarm_news
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_NOTIFICATION_TOPIC: notification-events
+      KAFKA_EMAIL_TOPIC: email-delivery
+      KAFKA_DLQ_TOPIC: notification-dlq
+      KAFKA_CONSUMER_GROUP_WORKER: alarm-news-workers
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      WORKER_ID: worker-1
+      WORKER_LOCK_TTL_SECONDS: 300
+      WORKER_SHUTDOWN_GRACE_PERIOD_SECONDS: 60
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./src:/app/src
+
+  email_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.email_worker
+    ports:
+      - "8084:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_EMAIL_TOPIC: email-delivery
+      KAFKA_DLQ_TOPIC: notification-dlq
+      KAFKA_CONSUMER_GROUP_EMAIL: alarm-news-email-workers
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM_EMAIL: noreply@alarmnews.com
+      LOG_LEVEL: DEBUG
+    volumes:
+      - ./src:/app/src
+
+volumes:
+  mongodb_data:

@@ -1,0 +1,52 @@
+# Dockerfile for Alarm News Worker
+# Required environment variables:
+#   MONGODB_URI - MongoDB connection string
+#   KAFKA_BOOTSTRAP_SERVERS - Kafka broker addresses
+#   REDIS_HOST - Redis server host
+#   REDIS_PORT - Redis server port
+#   WORKER_ID - Unique worker identifier
+#   WORKER_SHUTDOWN_GRACE_PERIOD_SECONDS - Grace period for shutdown
+
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc libffi-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY setup.py .
+
+# Create non-root user
+RUN useradd --create-home --uid 1000 appuser
+USER appuser
+
+# Set environment variables with defaults
+ENV MONGODB_URI=mongodb://mongodb:27017 \
+    MONGODB_DATABASE=alarm_news \
+    KAFKA_BOOTSTRAP_SERVERS=kafka:9092 \
+    KAFKA_NOTIFICATION_TOPIC=notification-events \
+    KAFKA_EMAIL_TOPIC=email-delivery \
+    KAFKA_DLQ_TOPIC=notification-dlq \
+    KAFKA_CONSUMER_GROUP_WORKER=alarm-news-workers \
+    REDIS_HOST=redis \
+    REDIS_PORT=6379 \
+    WORKER_ID=worker-1 \
+    WORKER_LOCK_TTL_SECONDS=300 \
+    WORKER_LOCK_TIMEOUT_SECONDS=10 \
+    WORKER_SHUTDOWN_GRACE_PERIOD_SECONDS=60 \
+    LOG_LEVEL=INFO \
+    LOG_FORMAT=json \
+    HEALTH_CHECK_TIMEOUT_SECONDS=5
+
+EXPOSE 8080
+
+# Use exec form so SIGTERM is received by the Python process
+CMD ["python", "-m", "src.worker.main"]
