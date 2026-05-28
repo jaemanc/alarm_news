@@ -5,23 +5,33 @@ Provides an abstract database interface for swappability and a concrete
 MongoDB implementation with connection pooling, retry logic, and index management.
 """
 import logging
+import os
 import time
 import functools
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-from pymongo import MongoClient, IndexModel, ASCENDING
-from pymongo.collection import Collection
-from pymongo.database import Database
-from pymongo.errors import (
-    ConnectionFailure,
-    ServerSelectionTimeoutError,
-    PyMongoError,
-    AutoReconnect,
-    NetworkTimeout,
-)
-from pymongo.read_preferences import Primary
-from pymongo.write_concern import WriteConcern
+try:
+    from pymongo import MongoClient, IndexModel, ASCENDING
+    from pymongo.collection import Collection
+    from pymongo.database import Database
+    from pymongo.errors import (
+        ConnectionFailure,
+        ServerSelectionTimeoutError,
+        PyMongoError,
+        AutoReconnect,
+        NetworkTimeout,
+    )
+    from pymongo.read_preferences import Primary
+    from pymongo.write_concern import WriteConcern
+    PYMONGO_AVAILABLE = True
+except ImportError:
+    PYMONGO_AVAILABLE = False
+    # Define placeholder exceptions for the retry decorator
+    ConnectionFailure = OSError
+    AutoReconnect = OSError
+    NetworkTimeout = OSError
+    ServerSelectionTimeoutError = OSError
 
 from src.shared.config import get_config, MongoDBConfig
 
@@ -192,15 +202,24 @@ class MongoDBConnectionManager(DatabaseInterface):
     read preference, retry logic, and index management.
 
     Configuration is loaded from the shared config module (environment variables).
+    Requires pymongo: pip install pymongo
     """
 
-    def __init__(self, config: Optional[MongoDBConfig] = None):
+    def __init__(self, config: Optional["MongoDBConfig"] = None):
         """
         Initialize the MongoDB connection manager.
 
         Args:
             config: Optional MongoDBConfig. If not provided, loads from environment.
+
+        Raises:
+            ImportError: If pymongo is not installed.
         """
+        if not PYMONGO_AVAILABLE:
+            raise ImportError(
+                "pymongo is required for MongoDB backend. "
+                "Install it with: pip install pymongo>=4.6.0"
+            )
         self._config = config or get_config().mongodb
         self._client: Optional[MongoClient] = None
         self._db: Optional[Database] = None
@@ -394,16 +413,26 @@ class MongoDBConnectionManager(DatabaseInterface):
 _db_manager: Optional[MongoDBConnectionManager] = None
 
 
-def get_database() -> MongoDBConnectionManager:
+def get_database() -> "DatabaseInterface":
     """
-    Get the global MongoDB connection manager instance.
+    Get the global database instance.
+
+    Uses DB_BACKEND environment variable to select implementation:
+    - "sqlite" (default): Lightweight file-based database
+    - "mongodb": Full MongoDB connection
 
     Returns:
-        MongoDBConnectionManager singleton instance.
+        DatabaseInterface singleton instance.
     """
     global _db_manager
     if _db_manager is None:
-        _db_manager = MongoDBConnectionManager()
+        backend = os.environ.get("DB_BACKEND", "sqlite").lower()
+        if backend == "mongodb":
+            _db_manager = MongoDBConnectionManager()
+            _db_manager.connect()
+        else:
+            from src.shared.sqlite_database import create_sqlite_database
+            _db_manager = create_sqlite_database()
     return _db_manager
 
 

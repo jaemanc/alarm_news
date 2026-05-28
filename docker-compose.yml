@@ -32,20 +32,6 @@ services:
       timeout: 5s
       retries: 10
 
-  mongodb:
-    image: mongo:7.0
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_DATABASE: alarm_news
-    volumes:
-      - mongodb_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     ports:
@@ -64,13 +50,11 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      MONGODB_URI: mongodb://mongodb:27017
-      MONGODB_DATABASE: alarm_news
+      DB_BACKEND: sqlite
+      SQLITE_DB_PATH: /app/data/alarm_news.db
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: dev-jwt-secret-key
@@ -79,6 +63,7 @@ services:
       LOG_LEVEL: DEBUG
     volumes:
       - ./src:/app/src
+      - ./data:/app/data
 
   crawler:
     build:
@@ -87,20 +72,19 @@ services:
     ports:
       - "8081:8080"
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      MONGODB_URI: mongodb://mongodb:27017
-      MONGODB_DATABASE: alarm_news
+      DB_BACKEND: sqlite
+      SQLITE_DB_PATH: /app/data/alarm_news.db
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      CRAWLER_INTERVAL_MINUTES: 30
+      CRAWLER_INTERVAL_MINUTES: 360
       CRAWLER_REQUEST_DELAY_SECONDS: 2
       LOG_LEVEL: DEBUG
     volumes:
       - ./src:/app/src
+      - ./data:/app/data
 
   scheduler:
     build:
@@ -109,15 +93,13 @@ services:
     ports:
       - "8082:8080"
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
         condition: service_healthy
     environment:
-      MONGODB_URI: mongodb://mongodb:27017
-      MONGODB_DATABASE: alarm_news
+      DB_BACKEND: sqlite
+      SQLITE_DB_PATH: /app/data/alarm_news.db
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_NOTIFICATION_TOPIC: notification-events
       REDIS_HOST: redis
@@ -127,6 +109,7 @@ services:
       LOG_LEVEL: DEBUG
     volumes:
       - ./src:/app/src
+      - ./data:/app/data
 
   worker:
     build:
@@ -135,15 +118,13 @@ services:
     ports:
       - "8083:8080"
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
         condition: service_healthy
     environment:
-      MONGODB_URI: mongodb://mongodb:27017
-      MONGODB_DATABASE: alarm_news
+      DB_BACKEND: sqlite
+      SQLITE_DB_PATH: /app/data/alarm_news.db
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_NOTIFICATION_TOPIC: notification-events
       KAFKA_EMAIL_TOPIC: email-delivery
@@ -157,6 +138,7 @@ services:
       LOG_LEVEL: DEBUG
     volumes:
       - ./src:/app/src
+      - ./data:/app/data
 
   email_worker:
     build:
@@ -181,5 +163,4 @@ services:
     volumes:
       - ./src:/app/src
 
-volumes:
-  mongodb_data:
+volumes: {}

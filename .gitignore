@@ -54,6 +54,7 @@ logs/
 # Database
 *.db
 *.sqlite3
+data/
 
 # Temporary files
 *.tmp

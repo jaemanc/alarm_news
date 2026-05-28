@@ -64,12 +64,13 @@ The system consists of five primary components connected via Kafka event streami
 
 ### Infrastructure Dependencies
 
-| 서비스 | 용도 |
-|--------|------|
-| **MongoDB** | 사용자 데이터, 크롤링 결과 저장 |
-| **Redis** | URL 중복 캐시, 분산 락, 레이트 리밋, 세션 |
-| **Kafka** | 컴포넌트 간 비동기 이벤트 전달 (3개 토픽) |
-| **Resend API** | 이메일 발송 (SMTP 대체, 무료 월 3,000통) |
+| 서비스 | 용도 | 비고 |
+|--------|------|------|
+| **SQLite** | 사용자 데이터, 크롤링 결과 저장 | 기본 (파일 기반, 설치 불필요) |
+| **MongoDB** | 대규모 배포 시 대안 | `DB_BACKEND=mongodb`로 전환 |
+| **Redis** | URL 중복 캐시, 분산 락, 레이트 리밋, 세션 | 필수 |
+| **Kafka** | 컴포넌트 간 비동기 이벤트 전달 (3개 토픽) | 필수 |
+| **Resend API** | 이메일 발송 (무료 월 3,000통) | SMTP 대안 가능 |
 
 ### Kafka Topics
 
@@ -90,11 +91,11 @@ The system consists of five primary components connected via Kafka event streami
 ## Tech Stack
 
 - **Language**: Python 3.9+
-- **Database**: MongoDB (user data, subscriptions)
+- **Database**: SQLite (기본, 경량) / MongoDB (선택, 대규모 배포용)
 - **Message Queue**: Apache Kafka (event streaming)
 - **Cache/Locking**: Redis (distributed locks, rate limiting, caching)
 - **Web Crawling**: BeautifulSoup, Requests
-- **Email**: SMTP with TLS (smtplib)
+- **Email**: Resend API (기본) / SMTP (대안)
 - **Auth**: bcrypt (password hashing), PyJWT (tokens)
 - **Deployment**: Docker + Kubernetes (blue/green strategy)
 
@@ -125,9 +126,9 @@ alarm_news/
 ### Prerequisites
 
 - Python 3.9+ (3.13.5 recommended)
-- MongoDB
-- Apache Kafka
 - Redis
+- Apache Kafka
+- (선택) MongoDB — `DB_BACKEND=mongodb`로 전환 시에만 필요
 
 ### Installation
 

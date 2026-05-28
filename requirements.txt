@@ -2,7 +2,8 @@
 # Python 3.9+ required
 
 # Database
-pymongo>=4.6.0
+# SQLite is built into Python - no extra dependency needed
+# pymongo is optional: pip install pymongo (only if DB_BACKEND=mongodb)
 
 # Message Queue
 kafka-python>=2.0.2

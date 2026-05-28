@@ -154,8 +154,8 @@ def load_config() -> Config:
         ValueError: If required configuration is missing
     """
     mongodb = MongoDBConfig(
-        uri=get_env("MONGODB_URI", "mongodb://localhost:27017", required=True),
-        database=get_env("MONGODB_DATABASE", "alarm_news", required=True),
+        uri=get_env("MONGODB_URI", "mongodb://localhost:27017"),
+        database=get_env("MONGODB_DATABASE", "alarm_news"),
         min_pool_size=int(get_env("MONGODB_MIN_POOL_SIZE", "10")),
         max_pool_size=int(get_env("MONGODB_MAX_POOL_SIZE", "100")),
     )
